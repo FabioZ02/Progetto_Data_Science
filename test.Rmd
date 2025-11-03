@@ -1,0 +1,25 @@
+---
+title: "Network Analysis"
+author: "Fabio Zuliani"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduzione
+Questo progetto ha come scopo l'analisi esplorativa della rete [Bitcoin OTC weighted signed network](https://snap.stanford.edu/data/soc-sign-bitcoin-otc.html), questo grafo rappresenta le relazioni di fiducia e diffidenza tra utenti della piattaforma di trading OTC. Gli utenti valutano altri membri su una scala da -10 a +10, con gli estremi che rappresentano la minima e la massima sfiducia.
+
+L'obiettivo principale di questa analisi è rispondere ad una serie di domande di ricerca, le quali successivamente verranno esposte e spiegate, all'interno di questo progetto verranno studiate la struttura, la dinamica e le proprietà della rete, proponendo analisi a livello locale, di gruppo e globali.
+
+## Bitcoin OTC
+
+Bitcoin OTC (Over-the-Counter) era una piattaforma di scambio peer-to-peer che facilita transazioni dirette tra acquirenti e venditori. A differenza dei CEX, i quali agiscono come intermediari  e mantengono registri completi degli utenti, le piattaforme OTC mirano ad un approccio più decentralizzato.
+
+In un ambiente come la blockchain, dove la decentralizzazione è una proprietà fondamentale, i concetti di **fiducia** e **reputazione** sono **fondamentali**, per garantire la sicurezza e la buona riuscita delle transazioni. Ecco perchè Bitcoin OTC ha sviluppato una metodologia di rating in cui gli utenti possono valutare altri membri dopo aver interagito tra di loro.
+
+L'analisi di questa rete ci permette di esplorare come la reputazione viene costruita e mantenuta in questo particolare contesto, possiamo verificare inoltre le proprietà studiate durante il corso riguardo le reti con segno, scoprendo le complessità di questo affascinante mondo.
+
