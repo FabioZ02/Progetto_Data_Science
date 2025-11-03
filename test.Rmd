@@ -23,3 +23,5 @@ In un ambiente come la blockchain, dove la decentralizzazione è una proprietà 
 
 L'analisi di questa rete ci permette di esplorare come la reputazione viene costruita e mantenuta in questo particolare contesto, possiamo verificare inoltre le proprietà studiate durante il corso riguardo le reti con segno, scoprendo le complessità di questo affascinante mondo.
 
+Testi di prova per verificare il corretto funzionamento
+
