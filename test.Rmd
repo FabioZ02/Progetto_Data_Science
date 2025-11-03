@@ -17,11 +17,40 @@ L'obiettivo principale di questa analisi è rispondere ad una serie di domande d
 
 ## Bitcoin OTC
 
-Bitcoin OTC (Over-the-Counter) era una piattaforma di scambio peer-to-peer che facilita transazioni dirette tra acquirenti e venditori. A differenza dei CEX, i quali agiscono come intermediari  e mantengono registri completi degli utenti, le piattaforme OTC mirano ad un approccio più decentralizzato.
+Bitcoin OTC (Over-the-Counter) è una piattaforma di scambio peer-to-peer che facilita transazioni dirette tra acquirenti e venditori. A differenza dei CEX, i quali agiscono come intermediari  e mantengono registri completi degli utenti, le piattaforme OTC mirano ad un approccio più decentralizzato.
 
 In un ambiente come la blockchain, dove la decentralizzazione è una proprietà fondamentale, i concetti di **fiducia** e **reputazione** sono **fondamentali**, per garantire la sicurezza e la buona riuscita delle transazioni. Ecco perchè Bitcoin OTC ha sviluppato una metodologia di rating in cui gli utenti possono valutare altri membri dopo aver interagito tra di loro.
 
 L'analisi di questa rete ci permette di esplorare come la reputazione viene costruita e mantenuta in questo particolare contesto, possiamo verificare inoltre le proprietà studiate durante il corso riguardo le reti con segno, scoprendo le complessità di questo affascinante mondo.
 
-Testi di prova per verificare il corretto funzionamento
+La rete presa in considerazione in questo studio rappresenta esplicitamente le relazioni di fiducia e diffidenza tra gli utenti di Bitcoin OTC. L'analisi di tale rete ci permette di esplorare come la reputazione viene costruita e mantenuta in un contesto decentralizzato, e quali strutture sociali emergono da queste interazioni.
+
+## Domande di ricerca
+
+Dopo questa breve introduzioni al dominio di provenienza della rete in questa sezione della relazione verranno presentate le domande di ricerca, lo scopo di questa anlisi, infatti, è cercare le risposte ad una serie di quesiti che sono stati posti, attraverso operazioni, manipolazioni e proprietà della nostra rete.
+
+I quesiti posti sono i seguenti:
+
+1. **Chi sono gli utenti più influenti e affidabili nella rete? Inoltre, qual è la distribuzione della reputazione?**
+
+2. **Sono presenti delle comunità all'interno di questa rete? Se la risposta è positiva, esse si basano sulla fiducia?**
+
+3. **Questa rete con segno rispetta le proprietà di bilanciamento?**
+
+4. **La topologia di questa rete rispetta la struttura di modelli teorici? La sua topologia ha qualche risvolto dal punto di vista della resilienza?**
+
+# Analisi della rete
+
+Terminata l'introduzione e la presentazione delle domande di ricerca, in questo capitolo verrà esposta la ricerca vera e propria, inizialmente verrà presentato il dataset, verranno esposte le caratteristiche principali di esso, una volta terminata questa prima esplorazione verrà costruito il grafo che rappresenta la rete.
+
+```{r, echo=TRUE,message=FALSE, warning=FALSE, results='hide'}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(igraph)
+library(tidygraph)
+library(ggraph)
+
+```
+
 
