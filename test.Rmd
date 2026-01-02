@@ -50,6 +50,7 @@ library(ggplot2)
 library(igraph)
 library(tidygraph)
 library(ggraph)
+library(signnet)
 
 ```
 
