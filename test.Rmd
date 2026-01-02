@@ -2,8 +2,8 @@
 title: "Network Analysis"
 author: "Fabio Zuliani"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,13 +11,16 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Introduzione
+
 Questo progetto ha come scopo l'analisi esplorativa della rete [Bitcoin OTC weighted signed network](https://snap.stanford.edu/data/soc-sign-bitcoin-otc.html), questo grafo rappresenta le relazioni di fiducia e diffidenza tra utenti della piattaforma di trading OTC. Gli utenti valutano altri membri su una scala da -10 a +10, con gli estremi che rappresentano la minima e la massima sfiducia.
 
-L'obiettivo principale di questa analisi è rispondere ad una serie di domande di ricerca, le quali successivamente verranno esposte e spiegate, all'interno di questo progetto verranno studiate la struttura, la dinamica e le proprietà della rete, proponendo analisi a livello locale, di gruppo e globali.
+L'obiettivo principale di questa analisi è rispondere ad una serie di domande di ricerca, le quali successivamente verranno esposte e spiegate.
+
+All'interno di questo progetto verranno studiate la struttura, la dinamica e le proprietà della rete, proponendo analisi a livello locale, di gruppo e globali.
 
 ## Bitcoin OTC
 
-Bitcoin OTC (Over-the-Counter) è una piattaforma di scambio peer-to-peer che facilita transazioni dirette tra acquirenti e venditori. A differenza dei CEX, i quali agiscono come intermediari  e mantengono registri completi degli utenti, le piattaforme OTC mirano ad un approccio più decentralizzato.
+Bitcoin OTC (Over-the-Counter) è una piattaforma di scambio peer-to-peer che facilita transazioni dirette tra acquirenti e venditori. A differenza dei CEX, i quali agiscono come intermediari e mantengono registri completi degli utenti, le piattaforme OTC mirano ad un approccio più decentralizzato.
 
 In un ambiente come la blockchain, dove la decentralizzazione è una proprietà fondamentale, i concetti di **fiducia** e **reputazione** sono **fondamentali**, per garantire la sicurezza e la buona riuscita delle transazioni. Ecco perchè Bitcoin OTC ha sviluppato una metodologia di rating in cui gli utenti possono valutare altri membri dopo aver interagito tra di loro.
 
@@ -31,13 +34,13 @@ Dopo questa breve introduzioni al dominio di provenienza della rete in questa se
 
 I quesiti posti sono i seguenti:
 
-1. **Chi sono gli utenti più influenti e affidabili nella rete? Inoltre, qual è la distribuzione della reputazione?**
+1.  **Chi sono gli utenti più influenti e affidabili nella rete? Inoltre, qual è la distribuzione della reputazione?**
 
-2. **Sono presenti delle comunità all'interno di questa rete? Se la risposta è positiva, esse si basano sulla fiducia?**
+2.  **Sono presenti delle comunità all'interno di questa rete? Se la risposta è positiva, esse si basano sulla fiducia?**
 
-3. **Questa rete con segno rispetta le proprietà di bilanciamento?**
+3.  **Questa rete con segno rispetta le proprietà di bilanciamento?**
 
-4. **La topologia di questa rete rispetta la struttura di modelli teorici? La sua topologia ha qualche risvolto dal punto di vista della resilienza?**
+4.  **La topologia di questa rete rispetta la struttura di modelli teorici? La sua topologia ha qualche risvolto dal punto di vista della resilienza?**
 
 # Analisi della rete
 
@@ -51,6 +54,205 @@ library(igraph)
 library(tidygraph)
 library(ggraph)
 library(signnet)
+
+rete <- read.csv("dataset_completo.csv")
+
+rete <- rete %>%
+  rename(
+    source = SOURCE,
+    target = TARGET,
+    weight = RATING
+  )
+
+# Formattazione data,ora riconoscibile da R
+rete$timestamp <- paste(rete$DATE, rete$TIME)
+rete$timestamp_datetime <- as.POSIXct(rete$timestamp, format = "%Y-%m-%d %H:%M:%S", tz = "GMT")
+
+rete <- rete %>%
+  select(
+    source,
+    target,
+    weight,
+    timestamp_datetime
+  )
+
+head(rete)
+summary(rete$weight)
+```
+
+Una volta caricato il dataset, è stata eseguita una breve attività di pre-processing dei dati. Durante la quale sono stati modificati e standardizzati i nomi delle colonne, sono state unite le colonne DATE, TIME e sono state formattate correttamente in modo tale da poter eseguire delle analisi in seguito.
+
+Il dataframe finale, con il quale verrà costruito il grafo si chiama dunque $rete$, è composto da 4 colonne:
+
+1.  **source**
+2.  **target**
+3.  **weight**
+4.  **timestamp_datetime**
+
+Terminato il processo di pulizia e costruzione del dataset. La rete può dunque essere costruita.
+
+# Analisi Preliminari
+
+## Creazione della rete
+
+Questa sezione è dedicata all'analisi delle proprietà fondamentali della rete, partendo dalla sua creazione. Queste prime analisi forniranno una prima idea grezza della scala e della connettività della rete.
+
+Verranno calcolate le metriche fondamentali come il numero di nodi (gli utenti), il numero di archi (le transazioni) ela connettività per avere una prima panoramica della struttura
+
+```{r, echo=TRUE,message=FALSE, warning=FALSE}
+
+# Creazione grafo. La rete è diretta e pesata
+g <- graph_from_data_frame(rete, directed = TRUE)
+
+# Assegnazione pesi
+E(g)$weight <- rete$weight 
+
+# Introduzione data, ora
+E(g)$timestamp_datetime <- rete$timestamp_datetime
+
+print(g)
+
+# Densità del grafo
+density_g <- edge_density(g)
+cat(paste("La densità del grafo è: ", density_g))
+
+# Converti il grafo igraph in un oggetto tidygraph (tbl_graph).
+tg <- as_tbl_graph(g)
+
+g_for_plot_all_edges <- g 
+
+# Colore degli archi: gradiente per la forza del peso.
+E(g_for_plot_all_edges)$weight_rescaled <- E(g_for_plot_all_edges)$weight
+E(g_for_plot_all_edges)$edge_width <- abs(E(g_for_plot_all_edges)$weight) / 10 * 0.8 # Spessore ridotto per la densità
+
+# Impostiamo una dimensione minima per le frecce, ridotta per la densità.
+E(g_for_plot_all_edges)$arrow_size <- 0.1 + abs(E(g_for_plot_all_edges)$weight) / 10 * 0.1
+
+ggraph(g_for_plot_all_edges, layout = 'circle') +
+  # Disegna solo gli archi.
+  geom_edge_fan(aes(color = weight_rescaled, width = edge_width),
+                arrow = arrow(length = unit(E(g_for_plot_all_edges)$arrow_size, 'mm'), type = "closed"),
+                end_cap = circle(0.2, 'mm'),
+                start_cap = circle(0.2, 'mm'),
+                alpha = 0.2) +
+  scale_edge_color_gradient2(low = "red", mid = "lightgreen", high = "darkgreen", midpoint = 0,
+                             name = "Rating (Fiducia/Diffidenza)",
+                             breaks = seq(-10, 10, by = 2),
+                             labels = seq(-10, 10, by = 2)) +
+  scale_edge_width(range = c(0.05, 0.8), name = "Forza del Rating") + # Range di spessore ridotto
+  # Titoli e sottotitoli del grafico
+  labs(title = "Visualizzazione della rete Network Bitcoin OTC") +
+  theme_graph() + # Tema grafico senza assi e griglie
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
+        plot.subtitle = element_text(hjust = 0.5, size = 10),
+        legend.position = "right",
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 8),
+        panel.background = element_rect(fill = "white", colour = NA)) + 
+  guides(edge_color = guide_colorbar(barwidth = 0.8, barheight = 10))
+```
+
+Dalla visualizzazione della rete si può dedurre che nel complesso la tendenza generale è la fiducia. In quanto il colore predominante è il verde. Grazie alla trasparenza degli archi, nonostante il numero elevato di archi, si capisce che la distribuzione della fiducia è eterogenea.
+
+Nonostante il verde predominante sono comunque presenti archi rossi, questo significa che all'interno della rete sono presenti nodi "truffatori", sono distribuiti in varie aree del cerchio. Ciò conferma che il sistema di rating è attivamente utilizzato anche per segnalare esperienze negative, il che è cruciale per la sua efficacia come meccanismo di protezione dalle frodi. La densità degli archi rossi in alcune aree potrebbe indicare cluster di utenti che hanno accumulato o espresso molta diffidenza.
+
+Nella prossima sezione verranno eseguite delle analisi sulla rete a livello locale. L'obiettivo è quello di studiare le misure di centralità e di potere, inoltre, seguendo i quesiti di ricerca, cercheremo di rispondere ad alcune domande che ci siamo posti, come per esempio verificare se questa rete rispetta la teoria del bilanciamento.
+
+# Analisi Locale
+
+In questa sezione ci concentreremo nello studio delle proprietà locali della nostra rete. Nello specifico nella prima parte del capitolo andremo ad analizzare il grado dei nodi della rete, in modo tale da poter rispondere al primo quesito di ricerca.
+
+Prima di iniziare l'analisi definiamo un utente (nodo), influente come un nodo che ha un grado in entrata (in-degree) alto. Estendendo il concetto un nodo affidabile, è un nodo che riceve molti voti positivi.
+
+```{r, echo=TRUE,message=FALSE, warning=FALSE}
+
+# Normalizza i pesi (da -10/+10 a -1/+1)
+E(g)$weight <- E(g)$weight / 10
+E(g)$sign <- ifelse(E(g)$weight > 0, 1, -1)
+
+# Crea sottografi per archi positivi e negativi
+g_pos <- subgraph.edges(g, E(g)[E(g)$weight > 0], delete.vertices = FALSE)
+g_neg <- subgraph.edges(g, E(g)[E(g)$weight < 0], delete.vertices = FALSE)
+
+# Calcola i gradi in-degree per positivi e negativi
+V(g)$pos_in_degree <- degree(g_pos, mode = "in")
+V(g)$neg_in_degree <- degree(g_neg, mode = "in")
+
+# Calcola il grado netto (differenza tra positivi e negativi)
+V(g)$net <- V(g)$pos_in_degree - V(g)$neg_in_degree
+
+# Opzionale: aggiungi anche out-degree
+V(g)$pos_out_degree <- degree(g_pos, mode = "out")
+V(g)$neg_out_degree <- degree(g_neg, mode = "out")
+
+# Verifica i risultati
+summary(V(g)$pos_in_degree)
+summary(V(g)$neg_in_degree)
+summary(V(g)$net)
+
+# 1. Distribuzione della positività nella rete
+pos_ratio <- sum(V(g)$pos_in_degree) / (sum(V(g)$pos_in_degree) + sum(V(g)$neg_in_degree))
+cat("Percentuale di trust positivo:", round(pos_ratio * 100, 2), "%\n")
+
+# 2. Identifica i nodi chiave
+# Nodi più fidati (highest net)
+top_trusted <- data.frame(
+  node_id = V(g)$name,
+  pos_in = V(g)$pos_in_degree,
+  neg_in = V(g)$neg_in_degree,
+  net = V(g)$net
+) %>% arrange(desc(net))
+
+cat("\nTop 10 nodi più fidati:\n")
+print(head(top_trusted, 10))
+
+# Nodi più controversi (alto pos E alto neg)
+controversial <- top_trusted %>%
+  filter(pos_in > 10 & neg_in > 5) %>%
+  mutate(controversy = neg_in / pos_in) %>%
+  arrange(desc(controversy))
+
+cat("\nNodi più controversi:\n")
+print(head(controversial, 10))
+
+# Nodi con bilancio negativo
+distrusted <- top_trusted %>%
+  filter(net < 0) %>%
+  arrange(net)
+
+cat("\nNodi con bilancio negativo:\n")
+print(head(distrusted, 10))
+cat("Totale nodi con net < 0:", nrow(distrusted), "\n")
+
+# A. Distribuzione del net degree
+ggplot(top_trusted, aes(x = net)) +
+  geom_histogram(bins = 50, fill = "steelblue", alpha = 0.7) +
+  geom_vline(xintercept = 0, color = "red", linetype = "dashed", size = 1) +
+  theme_minimal() +
+  labs(title = "Distribuzione Net Trust (pos - neg)",
+       subtitle = "La maggior parte dei nodi ha bilancio positivo",
+       x = "Net Trust", y = "Frequenza")
+
+top_trusted <- top_trusted %>%
+  mutate(
+    category = case_when(
+      net > 50 ~ "Highly Trusted Hub",
+      net > 10 ~ "Trusted",
+      net > 0 & neg_in == 0 ~ "Only Positive",
+      net > 0 & neg_in > 0 ~ "Mostly Positive",
+      net == 0 ~ "Neutral",
+      net < 0 & net > -10 ~ "Slightly Distrusted",
+      TRUE ~ "Highly Distrusted"
+    )
+  )
+
+ggplot(top_trusted, aes(x = category, fill = category)) +
+  geom_bar() +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Tipologie di Nodi nella Rete Bitcoin OTC",
+       x = "", y = "Numero di Nodi") +
+  theme(legend.position = "none")
 
 ```
 
