@@ -48,7 +48,6 @@ Terminata l'introduzione e la presentazione delle domande di ricerca, in questo 
 
 ```{r, echo=TRUE,message=FALSE, warning=FALSE, results='hide'}
 library(tidyverse)
-library(dplyr)
 library(ggplot2)
 library(igraph)
 library(tidygraph)
@@ -181,20 +180,16 @@ V(g)$neg_in_degree <- degree(g_neg, mode = "in")
 # Calcola il grado netto (differenza tra positivi e negativi)
 V(g)$net <- V(g)$pos_in_degree - V(g)$neg_in_degree
 
-# Opzionale: aggiungi anche out-degree
+summary(V(g)$net)
+
+# Out-degree
 V(g)$pos_out_degree <- degree(g_pos, mode = "out")
 V(g)$neg_out_degree <- degree(g_neg, mode = "out")
 
-# Verifica i risultati
-summary(V(g)$pos_in_degree)
-summary(V(g)$neg_in_degree)
-summary(V(g)$net)
-
-# 1. Distribuzione della positività nella rete
+# Distribuzione della positività nella rete
 pos_ratio <- sum(V(g)$pos_in_degree) / (sum(V(g)$pos_in_degree) + sum(V(g)$neg_in_degree))
 cat("Percentuale di trust positivo:", round(pos_ratio * 100, 2), "%\n")
 
-# 2. Identifica i nodi chiave
 # Nodi più fidati (highest net)
 top_trusted <- data.frame(
   node_id = V(g)$name,
@@ -224,13 +219,12 @@ cat("\nNodi con bilancio negativo:\n")
 print(head(distrusted, 10))
 cat("Totale nodi con net < 0:", nrow(distrusted), "\n")
 
-# A. Distribuzione del net degree
+# Distribuzione del net degree
 ggplot(top_trusted, aes(x = net)) +
   geom_histogram(bins = 50, fill = "steelblue", alpha = 0.7) +
   geom_vline(xintercept = 0, color = "red", linetype = "dashed", size = 1) +
   theme_minimal() +
   labs(title = "Distribuzione Net Trust (pos - neg)",
-       subtitle = "La maggior parte dei nodi ha bilancio positivo",
        x = "Net Trust", y = "Frequenza")
 
 top_trusted <- top_trusted %>%
@@ -250,11 +244,70 @@ ggplot(top_trusted, aes(x = category, fill = category)) +
   geom_bar() +
   coord_flip() +
   theme_minimal() +
-  labs(title = "Tipologie di Nodi nella Rete Bitcoin OTC",
+  labs(title = "Livello di fiducia dei nodi nella Rete Bitcoin OTC",
        x = "", y = "Numero di Nodi") +
   theme(legend.position = "none")
 
 ```
+Questa prima parte dell'analisi locale ci fornisce molteplici informazioni. Come primo elemento possiamo affermare che, come la rappresentazione grafica iniziale della rete ci aveva suggerito, la maggior parte delle transazioni ha avuto una recensione positiva. Infatti l'indice di $positive-trust$ è pari al $89.9\%$, proseguendo sono stati calcolati il grado in entrata (recensioni ricevute) e il grado in uscita (recensioni fornite), di ogni nodo. Essendo la rete pesata è stata aggiunta come informazione anche il voto della recensione.
 
+Lo studio di questi due paramentri ha prodotto delle inofrmazioni interessanti, riassunte mediante i due grafici. All'interno dell'analisi, per ogni nodo è stato calcolato l'indice di fiducia netto ($pos - neg$), permettendo dunque di individuare in nodi a cui è stata riservata più fiducia e dall'altra parte identificare i nodi "truffatori". Sono stati individuati anche i nodi definiti controversi, ossia dei nodi che hanno ricevuto sia valutazioni molto alte sia molto basse.
+
+I due grafici finali riassumono queste informazioni, il primo grafico evidenzia come la maggior parte dei nodi (più di $4000$) ha un $positive-index$ maggiore di $0$ con una media che si attesta attorno al 5. Si nota dal grafico però che sono presenti anche due code sia a destra sia a sinistra, la prima più consistente, indicando dunque che sono presenti sia nodi con un valore di fiducia molto alto sia il contrario.
+
+Il secondo grafico invece esplicita maggiormente la suddivisione in categorie basate sulla fiducia dei nodi. Sono state stabilite 7 fasce basate sull'indice netto, ancora una volta la fascia predominante è quella evidenziata dal primo grafico, inoltre analizzando la struttura delle fasce, la maggior marte dei nodi ha un indice negativo nullo.
+
+Nella seconda parte analizzeremo più nel profondo i concetti di potere e centralità della rete, in secondo luogo verrà studiata la domanda numero $3$, analizzando le triadi presenti nella rete, cercando di capire se la rete rispetta la teoria del bilanciamento o no.
+
+```{r, echo=TRUE,message=FALSE, warning=FALSE}
+# Centrality (Katz)
+A = as_adjacency_matrix(g, sparse=TRUE, attr="weight")
+eig = eigen(A)$values
+r = max(abs(eig))
+alpha = 0.85 / r
+k =  alpha_centrality(g, alpha = alpha)
+V(g)$Katz = k
+
+centrali_k <- data.frame(
+  node_id = V(g)$name,
+  central_index = V(g)$Katz
+) %>% arrange(desc(central_index))
+
+print(head(centrali_k))
+
+# Crea rete solo con archi positivi
+edges_pos <- E(g)[E(g)$weight > 0]
+g_pos <- subgraph.edges(g, edges_pos, delete.vertices = FALSE)
+
+# Crea rete solo con archi negativi (valore assoluto)
+edges_neg <- E(g)[E(g)$weight < 0]
+g_neg <- subgraph.edges(g, edges_neg, delete.vertices = FALSE)
+E(g_neg)$weight <- abs(E(g_neg)$weight)
+
+# Calcola PageRank separati
+pr_positive <- page_rank(g_pos, weights = E(g_pos)$weight)$vector
+pr_negative <- page_rank(g_neg, weights = E(g_neg)$weight)$vector
+
+# Combina i risultati
+nodes <- V(g)$name  # o 1:vcount(g) se non hai nomi
+pr_combined <- pr_positive - pr_negative
+
+# Crea un dataframe per confrontare le metriche
+library(dplyr)
+
+results <- data.frame(
+  node = V(g)$name,  # o 1:vcount(g)
+  pagerank_pos = pr_positive,
+  pagerank_neg = pr_negative,
+  pagerank_net = pr_combined,
+  katz = V(g)$Katz
+)
+
+# Visualizza i top nodi
+results %>% 
+  arrange(desc(pagerank_net)) %>% 
+  head(10)
+
+```
 
 
