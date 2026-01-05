@@ -163,6 +163,8 @@ In questa sezione ci concentreremo nello studio delle proprietà locali della no
 
 Prima di iniziare l'analisi definiamo un utente (nodo), influente come un nodo che ha un grado in entrata (in-degree) alto. Estendendo il concetto un nodo affidabile, è un nodo che riceve molti voti positivi.
 
+## Distribuzione della fiducia
+
 ```{r, echo=TRUE,message=FALSE, warning=FALSE}
 
 # Normalizza i pesi (da -10/+10 a -1/+1)
@@ -249,6 +251,7 @@ ggplot(top_trusted, aes(x = category, fill = category)) +
   theme(legend.position = "none")
 
 ```
+
 Questa prima parte dell'analisi locale ci fornisce molteplici informazioni. Come primo elemento possiamo affermare che, come la rappresentazione grafica iniziale della rete ci aveva suggerito, la maggior parte delle transazioni ha avuto una recensione positiva. Infatti l'indice di $positive-trust$ è pari al $89.9\%$, proseguendo sono stati calcolati il grado in entrata (recensioni ricevute) e il grado in uscita (recensioni fornite), di ogni nodo. Essendo la rete pesata è stata aggiunta come informazione anche il voto della recensione.
 
 Lo studio di questi due paramentri ha prodotto delle inofrmazioni interessanti, riassunte mediante i due grafici. All'interno dell'analisi, per ogni nodo è stato calcolato l'indice di fiducia netto ($pos - neg$), permettendo dunque di individuare in nodi a cui è stata riservata più fiducia e dall'altra parte identificare i nodi "truffatori". Sono stati individuati anche i nodi definiti controversi, ossia dei nodi che hanno ricevuto sia valutazioni molto alte sia molto basse.
@@ -256,6 +259,8 @@ Lo studio di questi due paramentri ha prodotto delle inofrmazioni interessanti, 
 I due grafici finali riassumono queste informazioni, il primo grafico evidenzia come la maggior parte dei nodi (più di $4000$) ha un $positive-index$ maggiore di $0$ con una media che si attesta attorno al 5. Si nota dal grafico però che sono presenti anche due code sia a destra sia a sinistra, la prima più consistente, indicando dunque che sono presenti sia nodi con un valore di fiducia molto alto sia il contrario.
 
 Il secondo grafico invece esplicita maggiormente la suddivisione in categorie basate sulla fiducia dei nodi. Sono state stabilite 7 fasce basate sull'indice netto, ancora una volta la fascia predominante è quella evidenziata dal primo grafico, inoltre analizzando la struttura delle fasce, la maggior marte dei nodi ha un indice negativo nullo.
+
+## Analisi della centralità
 
 Nella seconda parte analizzeremo più nel profondo i concetti di potere e centralità della rete, in secondo luogo verrà studiata la domanda numero $3$, analizzando le triadi presenti nella rete, cercando di capire se la rete rispetta la teoria del bilanciamento o no.
 
@@ -275,11 +280,11 @@ centrali_k <- data.frame(
 
 print(head(centrali_k))
 
-# Crea rete solo con archi positivi
+# Sottografo archi positivi
 edges_pos <- E(g)[E(g)$weight > 0]
 g_pos <- subgraph.edges(g, edges_pos, delete.vertices = FALSE)
 
-# Crea rete solo con archi negativi (valore assoluto)
+# Sottografo archi negativi 
 edges_neg <- E(g)[E(g)$weight < 0]
 g_neg <- subgraph.edges(g, edges_neg, delete.vertices = FALSE)
 E(g_neg)$weight <- abs(E(g_neg)$weight)
@@ -289,25 +294,61 @@ pr_positive <- page_rank(g_pos, weights = E(g_pos)$weight)$vector
 pr_negative <- page_rank(g_neg, weights = E(g_neg)$weight)$vector
 
 # Combina i risultati
-nodes <- V(g)$name  # o 1:vcount(g) se non hai nomi
+nodes <- V(g)$name  
 pr_combined <- pr_positive - pr_negative
 
-# Crea un dataframe per confrontare le metriche
-library(dplyr)
-
-results <- data.frame(
-  node = V(g)$name,  # o 1:vcount(g)
-  pagerank_pos = pr_positive,
-  pagerank_neg = pr_negative,
-  pagerank_net = pr_combined,
-  katz = V(g)$Katz
+df_Centrality <- data.frame(
+  ID = V(g)$name,
+  Pagerank = pr_combined,
+  Katz = V(g)$Katz / max(V(g)$Katz)
 )
 
-# Visualizza i top nodi
-results %>% 
-  arrange(desc(pagerank_net)) %>% 
+df_Centrality %>%
+  arrange(desc(Pagerank)) %>%
   head(10)
 
+df_Centrality %>%
+  arrange(desc(Katz)) %>%
+  head(10)
+
+```
+
+In questo contesto di studio come misure di centralità sono state scelte PageRank e la centralità di Katz. Queste due misure forniscono informazioni che possono essere definite complementari nel contesto dell'influenza dei nodi all'interno della rete di fiducia.
+
+PageRank identifica gli utenti che ricevono fiducia da altri utenti già influenti. Non conta necessariamente il numero di connessioni che un nodo ha, in altre parole privilegia la qualità dei nodi che si fidano di te, non il numero di nodi che si fidano. Un nodo che ha un valore di PageRank alto significa che ha ricevuto l'endorsement dalla rete, può essere definito come un Broker della struttura.
+
+Katz invece, considera tutti i possibili cammini di fiducia che raggiungono un nodo, privilegiando i cammini più brevi. Questo significa che misura la raggiungibilità globale di un utente attraverso catene di fiducia, analizzando il potenziale di un nodo di diffondere informazioni attraverso la rete.
+
+Dopo il calcolo della centralità attraverso due differenti tipi di misure, lo studio evidenzia come i risultati siano differenti. Questa osservazione è normale, in quanto la centralità di Katz e PageRank si focalizzano su fatti differenti. PageRank punta alla qualità delle connessioni Katz sulla quantità.
+
+Nella parte successiva risponderemo alla domanda numero tre, attranverso il calcolo delle triadi verificheremo se la rete Bitocin OTC rispetta o no la teoria del bilanciamento.
+
+## Teora del bilanciamento
+
+Per definizione un nodo viene definito potente quando è connesso a nodi che non lo sono, 
+```{r, echo=TRUE,message=FALSE, warning=FALSE}
+# Trasforma il tuo output in un dataframe per lavorarci meglio
+df_triads <- data.frame(
+  tipo = names(risultato_triadi),
+  conteggio = as.numeric(risultato_triadi)
+)
+
+# Funzione rapida per classificare (semplificata)
+# P = +, N = -
+# Regola: numero dispari di 'N' = Sbilanciato
+df_triads$stato <- ifelse(grepl("N", df_triads$tipo), 
+                          ifelse(stringr::str_count(df_triads$tipo, "N") %% 2 == 0, "Bilanciato", "Sbilanciato"), 
+                          "Bilanciato")
+
+# Escludiamo le triadi vuote (003) o quasi vuote (102, 012) per il bilanciamento dei cicli
+triadi_chiuse <- df_triads[grepl("030|120|210|300", df_triads$tipo), ]
+
+# Calcola il totale
+totale_chiuse <- sum(triadi_chiuse$conteggio)
+bilanciate <- sum(triadi_chiuse$conteggio[triadi_chiuse$stato == "Bilanciato"])
+
+ratio_bilanciamento <- bilanciate / totale_chiuse
+cat("Rapporto di Bilanciamento sulle triadi chiuse:", ratio_bilanciamento)
 ```
 
 
