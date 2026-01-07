@@ -1,10 +1,7 @@
 ---
 title: "Network Analysis"
 author: "Fabio Zuliani"
-output:
-  ioslides_presentation:
-    css: ../style.css
-    incremental: yes
+output: html_document
 editor_options: 
   chunk_output_type: inline
 ---
@@ -365,11 +362,12 @@ Come si può notare l'indice ottenuto è pari all' $85\%$, ciò indica che la re
 
 Si può notare inltre una percentuale non nulla di triadi sbilanciate esistono, questo può essere dovuto al processo di costruzione di fiducia ancora in atto tra gli utenti, oppure può essere dovuto ai così detti utenti controversi, di cui abbiamo discusso precedentemente.
 
-Terminato questo primo capitolo riguardante l'analisi locale della rete, nel successivo discuteremo delle proprietà globali  che caratterizzano Bitcoin OTC, in particolare studieremo se la rete rispetta le strutture dei modelli teorici, ed in particolare ne studieremo la resilienza agli attacchi, rispondendo così all'utlima domanda.
+Terminato questo primo capitolo riguardante l'analisi locale della rete, nel successivo discuteremo delle proprietà globali che caratterizzano Bitcoin OTC, in particolare studieremo se la rete rispetta le strutture dei modelli teorici, ed in particolare ne studieremo la resilienza agli attacchi, rispondendo così all'utlima domanda.
 
 # Analisi globale
 
 In questo ultimo capitolo verranno studiate le proprietà globali della rete Bitcoin OTC, in particolare analizzeremo se essa rispetta la topologia dei modelli teorici. Sfruttando la distribuzione del grado poi andremo a determinare se la rete è un piccolo mondo o no. Come ultima analisi andremo a testare la resilienza della rete.
+
 ```{r, echo=TRUE,message=FALSE, warning=FALSE}
 
 # Cumulative distribution
@@ -413,4 +411,76 @@ plot(min(d_total):max(d_total), p_total[min(d_total):max(d_total)],
      main="Distribuzione Grado Totale: Bitcoin OTC")
 
 ```
- 
+
+L' analisi della distribuzione del grado, analizzata mediante:
+
+1.  Il grado in entrata
+
+2.  Il grado in uscita
+
+3.  Il grado totale
+
+Mostra un risultato chiaro. Lo studio è stato fatto mediante la Complementary Cumulative Distribution Function (CCDF) su scala bi-logaritmica. L'esito è andamento lineare in tutti e tre i casi.
+
+Questro conferma che la topologia della rete Bitcoin OTC rispecchia il modello teorico delle reti scale-free.
+
+Come previsto dal modello di preferential attachment di Barabasi-Albert, i nuovi utenti tendono ad interagire con chi possiede già un'alta reputazione, creando super-hub che tengono unita la struttura.
+
+Il prossimo passo è analizzare la resilienza della rete, studiando se essa è capace di resistere sia ad attacchi esterni sia a malfunzionamenti. Il processo di analisi sarà attuato rimuovendo man mano, secondo diverse strategie i nodi della rete fino alla rimozione della metà degli elementi della rete.
+
+```{r, echo=TRUE,message=FALSE, warning=FALSE}
+# Funzione percolate (invariata)
+percolate = function(g, size, d) {
+  
+  giant = vector()
+  
+  # initial size of giant component
+  c = components(g)
+  giant[1] = max(c$csize)
+  
+  # find vital nodes
+  names(d) = 1:length(d)
+  d = sort(d, decreasing=TRUE)
+  vital = as.integer(names(d[1:size]))
+  
+  # compute size of giant component after incremental removal 
+  for (i in 1:size) {
+    c = components(delete_vertices(g, vital[1:i]))
+    giant[i+1] = max(c$csize)
+  }
+  
+  return(giant)
+}
+
+# Test resilienza sulla rete Bitcoin OTC
+size = floor(vcount(g)/2)
+
+# Random
+rand = percolate(g, size, d = sample(V(g), size))    
+
+# Degree
+deg = percolate(g, size, d = degree(g, mode="all"))    
+
+# PageRank con pesi
+pr = percolate(g, size, d = page_rank(g, weights=abs(E(g)$weight))$vector)    
+
+# Betweenness con pesi
+bet = percolate(g, size, d = betweenness(g, weights=1/abs(E(g)$weight)))    
+
+# Visualizzazione
+plot(0:size, deg, type="l", col=1, lwd=2,
+     xlab="Numero di nodi rimossi", 
+     ylab="Dimensione componente gigante",
+     main="Robustezza Rete Bitcoin OTC",
+     ylim=c(0, max(deg)))
+lines(0:size, pr, col=2, lwd=2)
+lines(0:size, bet, col=3, lwd=2)
+lines(0:size, rand, col=4, lwd=2)
+lines(0:size, rep(vcount(g)/2, size+1), lty=2, col="gray")
+
+legend(x="topright", 
+       legend=c("Degree", "PageRank", "Betweenness", "Random"), 
+       lty=1, col=1:4, lwd=2)
+```
+
+Il grafico conferma i rislutati dell'analisi ottenuta dalla CCDF. Le rete Bitcoin OTC è una rete che segue il modello di preferential attachment. Come il grafico evidenza la rete è resiliente riguardo i guasti, lo si può dedurre dal fatto che la strategia casuale è la peggiore delle quattro in elenco. Dall'altro canto Bitcoin OTC è molto sensibile agli attacchi esterni, questa caratteristica è dovuta alla presenza di super hub, infatti la rimozione per grado e PageRank sono risultate le strategie più efficaci.
