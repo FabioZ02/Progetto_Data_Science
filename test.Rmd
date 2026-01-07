@@ -2,8 +2,11 @@
 title: "Network Analysis"
 author: "Fabio Zuliani"
 output:
-  html_document: default
-  pdf_document: default
+  ioslides_presentation:
+    css: ../style.css
+    incremental: yes
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -325,17 +328,23 @@ Nella parte successiva risponderemo alla domanda numero tre, attranverso il calc
 
 ## Teora del bilanciamento
 
-Per definizione un nodo viene definito potente quando è connesso a nodi che non lo sono, 
+In questa ultima parte dedicata all'analisi locale studieremo una propietà molto importante delle reti con segno: il bilanciamento strutturale.
+
+In una rete come quella presa in analisi, il bilanciamento strutturale non è solo una mera proprietà statistica, ma rappresenta una caratteristica chiave per garantire la sicurezza e l'affidabilità del mercato.
+
+Se i trader di cui un soggetto si fida, introducono un nuovo attore nel sistema è probabile che anch'esso si rivelerà un utente affidabile. Questo meccanismo di "fiducia transitiva" riduce il rischio finanziario.
+
+Verifichiamo dunque se effettivamente la rete di Bitocoin OTC è effettivamente bilanciata.
+
 ```{r, echo=TRUE,message=FALSE, warning=FALSE}
-# Trasforma il tuo output in un dataframe per lavorarci meglio
+# La funzione triad_census_signed()  analizza tutte le possibili combinazioni di tre nodi, considerando sia i segni che la direzione.
+risultato_triadi <- triad_census_signed(g)
+
 df_triads <- data.frame(
   tipo = names(risultato_triadi),
   conteggio = as.numeric(risultato_triadi)
 )
 
-# Funzione rapida per classificare (semplificata)
-# P = +, N = -
-# Regola: numero dispari di 'N' = Sbilanciato
 df_triads$stato <- ifelse(grepl("N", df_triads$tipo), 
                           ifelse(stringr::str_count(df_triads$tipo, "N") %% 2 == 0, "Bilanciato", "Sbilanciato"), 
                           "Bilanciato")
@@ -343,7 +352,6 @@ df_triads$stato <- ifelse(grepl("N", df_triads$tipo),
 # Escludiamo le triadi vuote (003) o quasi vuote (102, 012) per il bilanciamento dei cicli
 triadi_chiuse <- df_triads[grepl("030|120|210|300", df_triads$tipo), ]
 
-# Calcola il totale
 totale_chiuse <- sum(triadi_chiuse$conteggio)
 bilanciate <- sum(triadi_chiuse$conteggio[triadi_chiuse$stato == "Bilanciato"])
 
@@ -351,4 +359,58 @@ ratio_bilanciamento <- bilanciate / totale_chiuse
 cat("Rapporto di Bilanciamento sulle triadi chiuse:", ratio_bilanciamento)
 ```
 
+Nello studio del bilanciamento strutturale non è stato possibile utilizzare i metodi classici in quanto la rete è diretta (rappresentano transazioni gli archi), per cui è stata utilizzata la funzione triad_census_signed() che non presuppone che la rete sia indiretta.
 
+Come si può notare l'indice ottenuto è pari all' $85\%$, ciò indica che la rete possiede una buona coerenza interna. Questo indice evidenzia come la rete abbia sviluppato un sistema in cui la maggioranza delle relazioni segue una logica di mutua affidabilità.
+
+Si può notare inltre una percentuale non nulla di triadi sbilanciate esistono, questo può essere dovuto al processo di costruzione di fiducia ancora in atto tra gli utenti, oppure può essere dovuto ai così detti utenti controversi, di cui abbiamo discusso precedentemente.
+
+Terminato questo primo capitolo riguardante l'analisi locale della rete, nel successivo discuteremo delle proprietà globali  che caratterizzano Bitcoin OTC, in particolare studieremo se la rete rispetta le strutture dei modelli teorici, ed in particolare ne studieremo la resilienza agli attacchi, rispondendo così all'utlima domanda.
+
+# Analisi globale
+
+In questo ultimo capitolo verranno studiate le proprietà globali della rete Bitcoin OTC, in particolare analizzeremo se essa rispetta la topologia dei modelli teorici. Sfruttando la distribuzione del grado poi andremo a determinare se la rete è un piccolo mondo o no. Come ultima analisi andremo a testare la resilienza della rete.
+```{r, echo=TRUE,message=FALSE, warning=FALSE}
+
+# Cumulative distribution
+ccdf = function(d) {
+  n = length(d)
+  max = max(d)
+  p = rep(0, max)
+  for (i in 1:length(p)) {
+    p[i] = length(d[d >= i]) / n
+  } 
+  return(p)
+}
+
+
+d_in    <- degree(g, mode="in");    d_in    <- d_in[d_in > 0]
+d_out   <- degree(g, mode="out");   d_out   <- d_out[d_out > 0]
+d_total <- degree(g, mode="total"); d_total <- d_total[d_total > 0]
+
+# Calcolo CCDF
+p_in <-  ccdf(d_in)
+p_out <- ccdf(d_out)
+p_total <- ccdf(d_total)
+
+# Plot
+plot(min(d_in):max(d_in), p_in[min(d_in):max(d_in)], 
+     log="xy", type = "p", pch=20, col="darkred",
+     xlab="Grado in", 
+     ylab="CCDF",
+     main="Distribuzione Grado in: Bitcoin OTC")
+
+plot(min(d_out):max(d_out), p_out[min(d_out):max(d_out)], 
+     log="xy", type = "p", pch=20, col="darkgreen",
+     xlab="Grado out", 
+     ylab="CCDF",
+     main="Distribuzione Grado out: Bitcoin OTC")
+
+plot(min(d_total):max(d_total), p_total[min(d_total):max(d_total)], 
+     log="xy", type = "p", pch=20, col="darkblue",
+     xlab="Grado totale", 
+     ylab="CCDF",
+     main="Distribuzione Grado Totale: Bitcoin OTC")
+
+```
+ 
