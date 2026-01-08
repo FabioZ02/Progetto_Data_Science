@@ -137,7 +137,7 @@ ggraph(g_plot, layout = 'circle') +
                              breaks = seq(-10, 10, by = 2),
                              labels = seq(-10, 10, by = 2)) +
   scale_edge_width(range = c(0.05, 0.8), name = "Forza del Rating") + # Range di spessore ridotto
-  labs(title = "Visualizzazione della rete Network Bitcoin OTC") +
+  labs(title = "Visualizzazione della rete Bitcoin OTC") +
   theme_graph() +
   theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
         plot.subtitle = element_text(hjust = 0.5, size = 10),
@@ -320,7 +320,7 @@ Dopo il calcolo della centralità attraverso due differenti tipi di misure, lo s
 
 Nella parte successiva risponderemo alla domanda numero due, attranverso il calcolo delle triadi verificheremo se la rete Bitocin OTC rispetta o no la teoria del bilanciamento.
 
-## Teora del bilanciamento
+## Teoria del bilanciamento
 
 In questa ultima parte dedicata all'analisi locale studieremo una propietà molto importante delle reti con segno: il bilanciamento strutturale.
 
@@ -481,3 +481,15 @@ legend(x="topright",
 ```
 
 Il grafico conferma i rislutati dell'analisi ottenuta dalla CCDF. Le rete Bitcoin OTC è una rete che segue il modello di preferential attachment. Come il grafico evidenza la rete è resiliente riguardo i guasti, lo si può dedurre dal fatto che la strategia casuale è la peggiore delle quattro in elenco. Dall'altro canto Bitcoin OTC è molto sensibile agli attacchi esterni, questa caratteristica è dovuta alla presenza di super hub, infatti la rimozione per grado e PageRank sono risultate le strategie più efficaci.
+
+# Conclusioni
+
+In conclusione l'analisi di questa trusted network ha ottenuto dei risultati affascinanti per quanto concerne le domande di ricerca.
+
+Per quanto riguarda la prima domanda, l'analisi ha evidenziato una chiara gerarchia all'interno della rete rispetto alla fiducia. Essa è stata studiata mediante due misure di centralità: Katz e PageRank. L'analisi delle recensioni ha evidenziato che l'89% sono positive, inoltre la maggior parte dei nodi ha un indice positivo superiore a 5. Lo studio della centralità ha dimostrato la presenza sia di nodi controversi che dei così detti super-hub.
+
+Per quanto riguarda la seconda domanda di ricerca, l'esito dell'analisi ha dimostrato che, grazie ad un coefficiente di bilanciamento pari a quasi l'85%, la rete è sostanzialmente bilanciata. Questo risultato dimostra che il sistema ha sviluppato una logica di mutua affidabilità, dove la fiducia transitiva funziona efficientemente. Il 15% di triadi sbilanciate dimostra che sono presenti utenti non affidabili o fraudolenti. L'effetto può essere duplice, in primo luogo potrebbe significare che il processo di instaurazione della fiducia in certi determinati utenti è ancora in atto, dall'altro canto potrebbe significare che effettivamente all'interno della rete sono presenti utenti malevoli.
+
+La terza ed ultima domanda di questa analisi riguarda la topologia e la resilienza della rete. Inizialmente tramite un analisi della distribuzione del grado tramite CCDF abbiamo confermato che la topologia della rete segue quella delle reti scale-free. Ciò è dovuto al fatto che la distribuzione mostra un andamento lineare in scala bi-logaritmica per ogni tipologia di grado, confermando che la rete segue il modello di reti di Barabasi-Albert.
+
+Questa specifica topologia, come evidenzia lo studio della resilienza, ha un'ottima resistenza ai guasti casuali, in quanto sostanzialmente a meno che non vengano rimossi i super-hub la connettività non viene danneggiata. La rete però è pessima rispetto agli attacchi mirati come il grafico riassuntivo dimostra. Questo conferma ulteriormente il fatto che la topologia della rete segue i modelli preferential attachment.
