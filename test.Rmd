@@ -12,11 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduzione
 
-Questo progetto ha come scopo l'analisi esplorativa della rete [Bitcoin OTC weighted signed network](https://snap.stanford.edu/data/soc-sign-bitcoin-otc.html), questo grafo rappresenta le relazioni di fiducia e diffidenza tra utenti della piattaforma di trading OTC. Gli utenti valutano altri membri su una scala da -10 a +10, con gli estremi che rappresentano la minima e la massima sfiducia.
+Questo progetto ha come scopo l'analisi esplorativa della rete [Bitcoin OTC weighted signed network](https://snap.stanford.edu/data/soc-sign-bitcoin-otc.html). Questo grafo rappresenta le relazioni di fiducia e diffidenza tra utenti della piattaforma di trading OTC. Gli utenti valutano altri membri, con cui hanno effettuato una transazione, tramite una scala di valutazione a valori discreti da -10 a +10.
 
 L'obiettivo principale di questa analisi è rispondere ad una serie di domande di ricerca, le quali successivamente verranno esposte e spiegate.
 
-All'interno di questo progetto verranno studiate la struttura, la dinamica e le proprietà della rete, proponendo analisi a livello locale, di gruppo e globali.
+All'interno di questo progetto verranno studiate la struttura, la dinamica e le proprietà della rete, proponendo analisi a livello locale e globale.
 
 ## Bitcoin OTC
 
@@ -36,11 +36,9 @@ I quesiti posti sono i seguenti:
 
 1.  **Chi sono gli utenti più influenti e affidabili nella rete? Inoltre, qual è la distribuzione della reputazione?**
 
-2.  **Sono presenti delle comunità all'interno di questa rete? Se la risposta è positiva, esse si basano sulla fiducia?**
+2.  **Questa rete con segno rispetta le proprietà di bilanciamento?**
 
-3.  **Questa rete con segno rispetta le proprietà di bilanciamento?**
-
-4.  **La topologia di questa rete rispetta la struttura di modelli teorici? La sua topologia ha qualche risvolto dal punto di vista della resilienza?**
+3.  **La topologia di questa rete rispetta la struttura di modelli teorici? La sua topologia ha qualche risvolto dal punto di vista della resilienza?**
 
 # Analisi della rete
 
@@ -79,7 +77,7 @@ head(rete)
 summary(rete$weight)
 ```
 
-Una volta caricato il dataset, è stata eseguita una breve attività di pre-processing dei dati. Durante la quale sono stati modificati e standardizzati i nomi delle colonne, sono state unite le colonne DATE, TIME e sono state formattate correttamente in modo tale da poter eseguire delle analisi in seguito.
+Una volta caricato il dataset, è stata eseguita una breve attività di pre-processing dei dati. Durante la quale sono stati modificati e standardizzati i nomi delle colonne, sono state unite le colonne DATE, TIME e sono state formattate correttamente.
 
 Il dataframe finale, con il quale verrà costruito il grafo si chiama dunque $rete$, è composto da 4 colonne:
 
@@ -96,7 +94,7 @@ Terminato il processo di pulizia e costruzione del dataset. La rete può dunque 
 
 Questa sezione è dedicata all'analisi delle proprietà fondamentali della rete, partendo dalla sua creazione. Queste prime analisi forniranno una prima idea grezza della scala e della connettività della rete.
 
-Verranno calcolate le metriche fondamentali come il numero di nodi (gli utenti), il numero di archi (le transazioni) ela connettività per avere una prima panoramica della struttura
+Verranno calcolate le metriche fondamentali come il numero di nodi (gli utenti), il numero di archi (le transazioni) e la connettività per avere una prima panoramica della struttura
 
 ```{r, echo=TRUE,message=FALSE, warning=FALSE}
 
@@ -118,19 +116,19 @@ cat(paste("La densità del grafo è: ", density_g))
 # Converti il grafo igraph in un oggetto tidygraph (tbl_graph).
 tg <- as_tbl_graph(g)
 
-g_for_plot_all_edges <- g 
+g_plot <- g 
 
 # Colore degli archi: gradiente per la forza del peso.
-E(g_for_plot_all_edges)$weight_rescaled <- E(g_for_plot_all_edges)$weight
-E(g_for_plot_all_edges)$edge_width <- abs(E(g_for_plot_all_edges)$weight) / 10 * 0.8 # Spessore ridotto per la densità
+E(g_plot)$weight_rescaled <- E(g_plot)$weight
+E(g_plot)$edge_width <- abs(E(g_plot)$weight) / 10 * 0.8 # Spessore ridotto per la densità
 
 # Impostiamo una dimensione minima per le frecce, ridotta per la densità.
-E(g_for_plot_all_edges)$arrow_size <- 0.1 + abs(E(g_for_plot_all_edges)$weight) / 10 * 0.1
+E(g_plot)$arrow_size <- 0.1 + abs(E(g_plot)$weight) / 10 * 0.1
 
-ggraph(g_for_plot_all_edges, layout = 'circle') +
+ggraph(g_plot, layout = 'circle') +
   # Disegna solo gli archi.
   geom_edge_fan(aes(color = weight_rescaled, width = edge_width),
-                arrow = arrow(length = unit(E(g_for_plot_all_edges)$arrow_size, 'mm'), type = "closed"),
+                arrow = arrow(length = unit(E(g_plot)$arrow_size, 'mm'), type = "closed"),
                 end_cap = circle(0.2, 'mm'),
                 start_cap = circle(0.2, 'mm'),
                 alpha = 0.2) +
@@ -139,9 +137,8 @@ ggraph(g_for_plot_all_edges, layout = 'circle') +
                              breaks = seq(-10, 10, by = 2),
                              labels = seq(-10, 10, by = 2)) +
   scale_edge_width(range = c(0.05, 0.8), name = "Forza del Rating") + # Range di spessore ridotto
-  # Titoli e sottotitoli del grafico
   labs(title = "Visualizzazione della rete Network Bitcoin OTC") +
-  theme_graph() + # Tema grafico senza assi e griglie
+  theme_graph() +
   theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 14),
         plot.subtitle = element_text(hjust = 0.5, size = 10),
         legend.position = "right",
@@ -153,9 +150,9 @@ ggraph(g_for_plot_all_edges, layout = 'circle') +
 
 Dalla visualizzazione della rete si può dedurre che nel complesso la tendenza generale è la fiducia. In quanto il colore predominante è il verde. Grazie alla trasparenza degli archi, nonostante il numero elevato di archi, si capisce che la distribuzione della fiducia è eterogenea.
 
-Nonostante il verde predominante sono comunque presenti archi rossi, questo significa che all'interno della rete sono presenti nodi "truffatori", sono distribuiti in varie aree del cerchio. Ciò conferma che il sistema di rating è attivamente utilizzato anche per segnalare esperienze negative, il che è cruciale per la sua efficacia come meccanismo di protezione dalle frodi. La densità degli archi rossi in alcune aree potrebbe indicare cluster di utenti che hanno accumulato o espresso molta diffidenza.
+Nonostante il verde predominante sono comunque presenti archi rossi, questo significa che all'interno della rete sono presenti nodi "truffatori", sono distribuiti in aree differenti del cerchio. Ciò conferma che il sistema di rating è attivamente utilizzato anche per segnalare esperienze negative, il che è cruciale per la sua efficacia come meccanismo di protezione dalle frodi. La densità degli archi rossi in alcune aree potrebbe indicare cluster di utenti che hanno accumulato o espresso molta diffidenza.
 
-Nella prossima sezione verranno eseguite delle analisi sulla rete a livello locale. L'obiettivo è quello di studiare le misure di centralità e di potere, inoltre, seguendo i quesiti di ricerca, cercheremo di rispondere ad alcune domande che ci siamo posti, come per esempio verificare se questa rete rispetta la teoria del bilanciamento.
+Nella prossima sezione verranno eseguite delle analisi sulla rete a livello locale. L'obiettivo è quello di studiare le misure di centralità, inoltre, seguendo i quesiti di ricerca, cercheremo di rispondere ad alcune domande che ci siamo posti, come per esempio verificare se questa rete rispetta la teoria del bilanciamento.
 
 # Analisi Locale
 
@@ -262,7 +259,7 @@ Il secondo grafico invece esplicita maggiormente la suddivisione in categorie ba
 
 ## Analisi della centralità
 
-Nella seconda parte analizzeremo più nel profondo i concetti di potere e centralità della rete, in secondo luogo verrà studiata la domanda numero $3$, analizzando le triadi presenti nella rete, cercando di capire se la rete rispetta la teoria del bilanciamento o no.
+Nella seconda parte analizzeremo più nel profondo i concetto di centralità della rete, in secondo luogo verrà studiata la domanda numero $2$, analizzando le triadi presenti nella rete, cercando di capire se la rete rispetta la teoria del bilanciamento o no.
 
 ```{r, echo=TRUE,message=FALSE, warning=FALSE}
 # Centrality (Katz)
@@ -281,12 +278,12 @@ centrali_k <- data.frame(
 print(head(centrali_k))
 
 # Sottografo archi positivi
-edges_pos <- E(g)[E(g)$weight > 0]
-g_pos <- subgraph.edges(g, edges_pos, delete.vertices = FALSE)
+#edges_pos <- E(g)[E(g)$weight > 0]
+#g_pos <- subgraph.edges(g, edges_pos, delete.vertices = FALSE)
 
 # Sottografo archi negativi 
-edges_neg <- E(g)[E(g)$weight < 0]
-g_neg <- subgraph.edges(g, edges_neg, delete.vertices = FALSE)
+#edges_neg <- E(g)[E(g)$weight < 0]
+#g_neg <- subgraph.edges(g, edges_neg, delete.vertices = FALSE)
 E(g_neg)$weight <- abs(E(g_neg)$weight)
 
 # Calcola PageRank separati
@@ -321,7 +318,7 @@ Katz invece, considera tutti i possibili cammini di fiducia che raggiungono un n
 
 Dopo il calcolo della centralità attraverso due differenti tipi di misure, lo studio evidenzia come i risultati siano differenti. Questa osservazione è normale, in quanto la centralità di Katz e PageRank si focalizzano su fatti differenti. PageRank punta alla qualità delle connessioni Katz sulla quantità.
 
-Nella parte successiva risponderemo alla domanda numero tre, attranverso il calcolo delle triadi verificheremo se la rete Bitocin OTC rispetta o no la teoria del bilanciamento.
+Nella parte successiva risponderemo alla domanda numero due, attranverso il calcolo delle triadi verificheremo se la rete Bitocin OTC rispetta o no la teoria del bilanciamento.
 
 ## Teora del bilanciamento
 
