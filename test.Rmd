@@ -300,13 +300,36 @@ df_Centrality <- data.frame(
   Katz = V(g)$Katz / max(V(g)$Katz)
 )
 
-df_Centrality %>%
-  arrange(desc(Pagerank)) %>%
-  head(10)
+library(ggrepel)
 
-df_Centrality %>%
-  arrange(desc(Katz)) %>%
-  head(10)
+
+top50_katz <- df_Centrality %>% 
+  arrange(desc(Katz)) %>% 
+  slice_head(n = 50) %>% 
+  pull(ID)
+
+top50_pr <- df_Centrality %>% 
+  arrange(desc(Pagerank)) %>% 
+  slice_head(n = 50) %>% 
+  pull(ID)
+
+top_nodes_all <- unique(c(top50_katz, top50_pr))
+
+df_top <- df_Centrality %>% 
+  filter(ID %in% top_nodes_all)
+
+ggplot(df_top, aes(x = Katz, y = Pagerank)) +
+  geom_point(aes(color = Pagerank), size = 3) +
+  geom_text_repel(aes(label = ID), size = 3, max.overlaps = 15) +
+  scale_color_gradient(low = "blue", high = "red") +
+  labs(
+    title = "Confronto tra le misure di centralità",
+    x = "Centralità di Katz",
+    y = "PageRank Netto"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
 
 ```
 
@@ -480,15 +503,22 @@ legend(x="topright",
        lty=1, col=1:4, lwd=2)
 ```
 
-Il grafico conferma i rislutati dell'analisi ottenuta dalla CCDF. Le rete Bitcoin OTC è una rete che segue il modello di preferential attachment. Come il grafico evidenza la rete è resiliente riguardo i guasti, lo si può dedurre dal fatto che la strategia casuale è la peggiore delle quattro in elenco. Dall'altro canto Bitcoin OTC è molto sensibile agli attacchi esterni, questa caratteristica è dovuta alla presenza di super hub, infatti la rimozione per grado e PageRank sono risultate le strategie più efficaci.
+Il grafico conferma i rislutati dell'analisi ottenuta dalla CCDF. Le rete Bitcoin OTC è una rete che segue il modello di preferential attachment.
 
-# Conclusioni
+Come il grafico evidenza la rete è resiliente riguardo i guasti, lo si può dedurre dal fatto che la strategia casuale è la peggiore delle quattro in elenco. Dall'altro canto Bitcoin OTC è molto sensibile agli attacchi esterni, questa caratteristica è dovuta alla presenza di super hub, infatti la rimozione per grado e PageRank sono risultate le strategie più efficaci.
+
+# Conclusione
 
 In conclusione l'analisi di questa trusted network ha ottenuto dei risultati affascinanti per quanto concerne le domande di ricerca.
 
-Per quanto riguarda la prima domanda, l'analisi ha evidenziato una chiara gerarchia all'interno della rete rispetto alla fiducia. Essa è stata studiata mediante due misure di centralità: Katz e PageRank. L'analisi delle recensioni ha evidenziato che l'89% sono positive, inoltre la maggior parte dei nodi ha un indice positivo superiore a 5. Lo studio della centralità ha dimostrato la presenza sia di nodi controversi che dei così detti super-hub.
+Per quanto riguarda la prima domanda, l'analisi ha evidenziato una chiara gerarchia all'interno della rete rispetto alla fiducia. Essa è stata studiata mediante due misure di centralità: Katz e PageRank. 
 
-Per quanto riguarda la seconda domanda di ricerca, l'esito dell'analisi ha dimostrato che, grazie ad un coefficiente di bilanciamento pari a quasi l'85%, la rete è sostanzialmente bilanciata. Questo risultato dimostra che il sistema ha sviluppato una logica di mutua affidabilità, dove la fiducia transitiva funziona efficientemente. Il 15% di triadi sbilanciate dimostra che sono presenti utenti non affidabili o fraudolenti. L'effetto può essere duplice, in primo luogo potrebbe significare che il processo di instaurazione della fiducia in certi determinati utenti è ancora in atto, dall'altro canto potrebbe significare che effettivamente all'interno della rete sono presenti utenti malevoli.
+L'analisi delle recensioni ha evidenziato che l'89% sono positive, inoltre la maggior parte dei nodi ha un indice positivo superiore a 5. Lo studio della centralità ha dimostrato la presenza sia di nodi controversi che dei così detti super-hub.
+
+Per quanto riguarda la seconda domanda di ricerca, l'esito dell'analisi ha dimostrato che, grazie ad un coefficiente di bilanciamento pari a quasi l'85%, la rete è sostanzialmente bilanciata. 
+Questo risultato dimostra che il sistema ha sviluppato una logica di mutua affidabilità, dove la fiducia transitiva funziona efficientemente. Il 15% di triadi sbilanciate dimostra che sono presenti utenti non affidabili o fraudolenti.
+
+L'effetto può essere duplice, in primo luogo potrebbe significare che il processo di instaurazione della fiducia in certi determinati utenti è ancora in atto, dall'altro canto potrebbe significare che effettivamente all'interno della rete sono presenti utenti malevoli.
 
 La terza ed ultima domanda di questa analisi riguarda la topologia e la resilienza della rete. Inizialmente tramite un analisi della distribuzione del grado tramite CCDF abbiamo confermato che la topologia della rete segue quella delle reti scale-free. Ciò è dovuto al fatto che la distribuzione mostra un andamento lineare in scala bi-logaritmica per ogni tipologia di grado, confermando che la rete segue il modello di reti di Barabasi-Albert.
 
