@@ -30,7 +30,7 @@ La rete presa in considerazione in questo studio rappresenta esplicitamente le r
 
 ## Domande di ricerca
 
-Dopo questa breve introduzioni al dominio di provenienza della rete in questa sezione della relazione verranno presentate le domande di ricerca, lo scopo di questa anlisi, infatti, è cercare le risposte ad una serie di quesiti che sono stati posti, attraverso operazioni, manipolazioni e proprietà della nostra rete.
+Dopo questa breve introduzione al dominio di provenienza della rete in questa sezione della relazione verranno presentate le domande di ricerca, lo scopo di questa analisi, infatti, è cercare le risposte ad una serie di quesiti che sono stati posti, attraverso operazioni, manipolazioni e proprietà della nostra rete.
 
 I quesiti posti sono i seguenti:
 
@@ -42,7 +42,7 @@ I quesiti posti sono i seguenti:
 
 # Analisi della rete
 
-Terminata l'introduzione e la presentazione delle domande di ricerca, in questo capitolo verrà esposta la ricerca vera e propria, inizialmente verrà presentato il dataset, verranno esposte le caratteristiche principali di esso, una volta terminata questa prima esplorazione verrà costruito il grafo che rappresenta la rete.
+Terminata l'introduzione e la presentazione delle domande di ricerca, in questo capitolo verrà esposta la ricerca vera e propria, inizialmente verrà presentato il dataset, verranno esposte le sue caratteristiche principali, una volta terminata questa prima esplorazione verrà costruito il grafo che rappresenta la rete.
 
 ```{r, echo=TRUE,message=FALSE, warning=FALSE, results='hide'}
 library(tidyverse)
@@ -79,7 +79,7 @@ summary(rete$weight)
 
 Una volta caricato il dataset, è stata eseguita una breve attività di pre-processing dei dati. Durante la quale sono stati modificati e standardizzati i nomi delle colonne, sono state unite le colonne DATE, TIME e sono state formattate correttamente.
 
-Il dataframe finale, con il quale verrà costruito il grafo si chiama dunque $rete$, è composto da 4 colonne:
+Il dataframe finale, con il quale verrà costruito il grafo si chiama dunque 'rete', è composto da 4 colonne:
 
 1.  **source**
 2.  **target**
@@ -94,7 +94,7 @@ Terminato il processo di pulizia e costruzione del dataset. La rete può dunque 
 
 Questa sezione è dedicata all'analisi delle proprietà fondamentali della rete, partendo dalla sua creazione. Queste prime analisi forniranno una prima idea grezza della scala e della connettività della rete.
 
-Verranno calcolate le metriche fondamentali come il numero di nodi (gli utenti), il numero di archi (le transazioni) e la connettività per avere una prima panoramica della struttura
+Verranno calcolate le metriche fondamentali come il numero di nodi (gli utenti), il numero di archi (le transazioni) e la connettività per avere una prima panoramica della struttura.
 
 ```{r, echo=TRUE,message=FALSE, warning=FALSE}
 
@@ -148,7 +148,7 @@ ggraph(g_plot, layout = 'circle') +
   guides(edge_color = guide_colorbar(barwidth = 0.8, barheight = 10))
 ```
 
-Dalla visualizzazione della rete si può dedurre che nel complesso la tendenza generale è la fiducia. In quanto il colore predominante è il verde. Grazie alla trasparenza degli archi, nonostante il numero elevato di archi, si capisce che la distribuzione della fiducia è eterogenea.
+Dalla visualizzazione della rete si può dedurre che nel complesso la tendenza generale è la fiducia, in quanto il colore predominante è il verde. Grazie alla trasparenza degli archi, nonostante il numero elevato di archi, si capisce che la distribuzione della fiducia è eterogenea.
 
 Nonostante il verde predominante sono comunque presenti archi rossi, questo significa che all'interno della rete sono presenti nodi "truffatori", sono distribuiti in aree differenti del cerchio. Ciò conferma che il sistema di rating è attivamente utilizzato anche per segnalare esperienze negative, il che è cruciale per la sua efficacia come meccanismo di protezione dalle frodi. La densità degli archi rossi in alcune aree potrebbe indicare cluster di utenti che hanno accumulato o espresso molta diffidenza.
 
@@ -251,11 +251,11 @@ ggplot(top_trusted, aes(x = category, fill = category)) +
 
 Questa prima parte dell'analisi locale ci fornisce molteplici informazioni. Come primo elemento possiamo affermare che, come la rappresentazione grafica iniziale della rete ci aveva suggerito, la maggior parte delle transazioni ha avuto una recensione positiva. Infatti l'indice di $positive-trust$ è pari al $89.9\%$, proseguendo sono stati calcolati il grado in entrata (recensioni ricevute) e il grado in uscita (recensioni fornite), di ogni nodo. Essendo la rete pesata è stata aggiunta come informazione anche il voto della recensione.
 
-Lo studio di questi due paramentri ha prodotto delle inofrmazioni interessanti, riassunte mediante i due grafici. All'interno dell'analisi, per ogni nodo è stato calcolato l'indice di fiducia netto ($pos - neg$), permettendo dunque di individuare in nodi a cui è stata riservata più fiducia e dall'altra parte identificare i nodi "truffatori". Sono stati individuati anche i nodi definiti controversi, ossia dei nodi che hanno ricevuto sia valutazioni molto alte sia molto basse.
+Lo studio di questi due parametri ha prodotto delle informazioni interessanti, riassunte mediante i due grafici. All'interno dell'analisi, per ogni nodo è stato calcolato l'indice di fiducia netto ($pos - neg$), permettendo dunque di individuare i nodi a cui è stata riservata più fiducia e dall'altra parte identificare i nodi "truffatori". Sono stati individuati anche i nodi definiti controversi, ossia dei nodi che hanno ricevuto sia valutazioni molto alte sia molto basse.
 
 I due grafici finali riassumono queste informazioni, il primo grafico evidenzia come la maggior parte dei nodi (più di $4000$) ha un $positive-index$ maggiore di $0$ con una media che si attesta attorno al 5. Si nota dal grafico però che sono presenti anche due code sia a destra sia a sinistra, la prima più consistente, indicando dunque che sono presenti sia nodi con un valore di fiducia molto alto sia il contrario.
 
-Il secondo grafico invece esplicita maggiormente la suddivisione in categorie basate sulla fiducia dei nodi. Sono state stabilite 7 fasce basate sull'indice netto, ancora una volta la fascia predominante è quella evidenziata dal primo grafico, inoltre analizzando la struttura delle fasce, la maggior marte dei nodi ha un indice negativo nullo.
+Il secondo grafico invece esplicita maggiormente la suddivisione in categorie basate sulla fiducia dei nodi. Sono state stabilite 7 fasce basate sull'indice netto, ancora una volta la fascia predominante è quella evidenziata dal primo grafico, inoltre analizzando la struttura delle fasce, la maggior parte dei nodi ha un indice negativo nullo.
 
 ## Analisi della centralità
 
@@ -341,17 +341,17 @@ Katz invece, considera tutti i possibili cammini di fiducia che raggiungono un n
 
 Dopo il calcolo della centralità attraverso due differenti tipi di misure, lo studio evidenzia come i risultati siano differenti. Questa osservazione è normale, in quanto la centralità di Katz e PageRank si focalizzano su fatti differenti. PageRank punta alla qualità delle connessioni Katz sulla quantità.
 
-Nella parte successiva risponderemo alla domanda numero due, attranverso il calcolo delle triadi verificheremo se la rete Bitocin OTC rispetta o no la teoria del bilanciamento.
+Nella parte successiva risponderemo alla domanda numero due, attraverso il calcolo delle triadi verificheremo se la rete Bitocin OTC rispetta o no la teoria del bilanciamento.
 
 ## Teoria del bilanciamento
 
-In questa ultima parte dedicata all'analisi locale studieremo una propietà molto importante delle reti con segno: il bilanciamento strutturale.
+In questa ultima parte dedicata all'analisi locale studieremo una proprietà molto importante delle reti con segno: il bilanciamento strutturale.
 
 In una rete come quella presa in analisi, il bilanciamento strutturale non è solo una mera proprietà statistica, ma rappresenta una caratteristica chiave per garantire la sicurezza e l'affidabilità del mercato.
 
 Se i trader di cui un soggetto si fida, introducono un nuovo attore nel sistema è probabile che anch'esso si rivelerà un utente affidabile. Questo meccanismo di "fiducia transitiva" riduce il rischio finanziario.
 
-Verifichiamo dunque se effettivamente la rete di Bitocoin OTC è effettivamente bilanciata.
+Verifichiamo dunque se effettivamente la rete di Bitcoin OTC è effettivamente bilanciata.
 
 ```{r, echo=TRUE,message=FALSE, warning=FALSE}
 # La funzione triad_census_signed()  analizza tutte le possibili combinazioni di tre nodi, considerando sia i segni che la direzione.
@@ -376,11 +376,11 @@ ratio_bilanciamento <- bilanciate / totale_chiuse
 cat("Rapporto di Bilanciamento sulle triadi chiuse:", ratio_bilanciamento)
 ```
 
-Nello studio del bilanciamento strutturale non è stato possibile utilizzare i metodi classici in quanto la rete è diretta (rappresentano transazioni gli archi), per cui è stata utilizzata la funzione triad_census_signed() che non presuppone che la rete sia indiretta.
+Nello studio del bilanciamento strutturale non è stato possibile utilizzare i metodi classici in quanto la rete è diretta (rappresentano transazioni gli archi), per cui è stata utilizzata la funzione triad_census_signed() che non presuppone che la rete sia non orientata.
 
 Come si può notare l'indice ottenuto è pari all' $85\%$, ciò indica che la rete possiede una buona coerenza interna. Questo indice evidenzia come la rete abbia sviluppato un sistema in cui la maggioranza delle relazioni segue una logica di mutua affidabilità.
 
-Si può notare inltre una percentuale non nulla di triadi sbilanciate esistono, questo può essere dovuto al processo di costruzione di fiducia ancora in atto tra gli utenti, oppure può essere dovuto ai così detti utenti controversi, di cui abbiamo discusso precedentemente.
+Si può notare inoltre una percentuale non nulla di triadi sbilanciate esistono, questo può essere dovuto al processo di costruzione di fiducia ancora in atto tra gli utenti, oppure può essere dovuto ai così detti utenti controversi, di cui abbiamo discusso precedentemente.
 
 Terminato questo primo capitolo riguardante l'analisi locale della rete, nel successivo discuteremo delle proprietà globali che caratterizzano Bitcoin OTC, in particolare studieremo se la rete rispetta le strutture dei modelli teorici, ed in particolare ne studieremo la resilienza agli attacchi, rispondendo così all'utlima domanda.
 
@@ -442,14 +442,14 @@ L' analisi della distribuzione del grado, analizzata mediante:
 
 Mostra un risultato chiaro. Lo studio è stato fatto mediante la Complementary Cumulative Distribution Function (CCDF) su scala bi-logaritmica. L'esito è andamento lineare in tutti e tre i casi.
 
-Questro conferma che la topologia della rete Bitcoin OTC rispecchia il modello teorico delle reti scale-free.
+Questo conferma che la topologia della rete Bitcoin OTC rispecchia il modello teorico delle reti scale-free.
 
 Come previsto dal modello di preferential attachment di Barabasi-Albert, i nuovi utenti tendono ad interagire con chi possiede già un'alta reputazione, creando super-hub che tengono unita la struttura.
 
 Il prossimo passo è analizzare la resilienza della rete, studiando se essa è capace di resistere sia ad attacchi esterni sia a malfunzionamenti. Il processo di analisi sarà attuato rimuovendo man mano, secondo diverse strategie i nodi della rete fino alla rimozione della metà degli elementi della rete.
 
 ```{r, echo=TRUE,message=FALSE, warning=FALSE}
-# Funzione percolate (invariata)
+# Funzione percolate 
 percolate = function(g, size, d) {
   
   giant = vector()
@@ -520,6 +520,6 @@ Questo risultato dimostra che il sistema ha sviluppato una logica di mutua affid
 
 L'effetto può essere duplice, in primo luogo potrebbe significare che il processo di instaurazione della fiducia in certi determinati utenti è ancora in atto, dall'altro canto potrebbe significare che effettivamente all'interno della rete sono presenti utenti malevoli.
 
-La terza ed ultima domanda di questa analisi riguarda la topologia e la resilienza della rete. Inizialmente tramite un analisi della distribuzione del grado tramite CCDF abbiamo confermato che la topologia della rete segue quella delle reti scale-free. Ciò è dovuto al fatto che la distribuzione mostra un andamento lineare in scala bi-logaritmica per ogni tipologia di grado, confermando che la rete segue il modello di reti di Barabasi-Albert.
+La terza ed ultima domanda di questa analisi riguarda la topologia e la resilienza della rete. Inizialmente tramite un' analisi della distribuzione del grado tramite CCDF abbiamo confermato che la topologia della rete segue quella delle reti scale-free. Ciò è dovuto al fatto che la distribuzione mostra un andamento lineare in scala bi-logaritmica per ogni tipologia di grado, confermando che la rete segue il modello di reti di Barabasi-Albert.
 
 Questa specifica topologia, come evidenzia lo studio della resilienza, ha un'ottima resistenza ai guasti casuali, in quanto sostanzialmente a meno che non vengano rimossi i super-hub la connettività non viene danneggiata. La rete però è pessima rispetto agli attacchi mirati come il grafico riassuntivo dimostra. Questo conferma ulteriormente il fatto che la topologia della rete segue i modelli preferential attachment.
