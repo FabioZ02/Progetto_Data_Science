@@ -430,6 +430,13 @@ plot(min(d_total):max(d_total), p_total[min(d_total):max(d_total)],
      ylab="CCDF",
      main="Distribuzione Grado Totale: Bitcoin OTC")
 
+skewness = function(x) mean( (x - mean(x))^3) / sd(x)^3
+hist(d_in)
+skewness(d_in)
+
+fit <- fit_power_law(d_in)
+cat("Esponente Alpha:", fit$alpha)
+
 ```
 
 L' analisi della distribuzione del grado, analizzata mediante:
@@ -445,6 +452,8 @@ Mostra un risultato chiaro. Lo studio è stato fatto mediante la Complementary C
 Questo conferma che la topologia della rete Bitcoin OTC rispecchia il modello teorico delle reti scale-free.
 
 Come previsto dal modello di preferential attachment di Barabasi-Albert, i nuovi utenti tendono ad interagire con chi possiede già un'alta reputazione, creando super-hub che tengono unita la struttura.
+
+Per confermare i risultati ottenuti, per la distribuzione del grado in entrata sono stati effettuati due test statistici. Il primo ha verificato la forte asimmetria, è stato utilizzato l'indice di skewness. Il quale ha otttenuto come risultato circa 12.37. Il secondo test ha calcolato l'esponente $\alpha$ della power law che è risultato pari a 2.27.
 
 Il prossimo passo è analizzare la resilienza della rete, studiando se essa è capace di resistere sia ad attacchi esterni sia a malfunzionamenti. Il processo di analisi sarà attuato rimuovendo man mano, secondo diverse strategie i nodi della rete fino alla rimozione della metà degli elementi della rete.
 
