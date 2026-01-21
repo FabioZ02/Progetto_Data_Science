@@ -250,7 +250,6 @@ ggplot(top_trusted, aes(x = category, fill = category)) +
 ```
 
 Questa prima parte dell'analisi locale ci fornisce molteplici informazioni. Come primo elemento possiamo affermare che, come la rappresentazione grafica iniziale della rete ci aveva suggerito, la maggior parte delle transazioni ha avuto una recensione positiva. Infatti l'indice di $positive-trust$ è pari al $89.9\%$, proseguendo sono stati calcolati il grado in entrata (recensioni ricevute) e il grado in uscita (recensioni fornite), di ogni nodo. Essendo la rete pesata è stata aggiunta come informazione anche il voto della recensione.
-<<<<<<< HEAD
 
 Lo studio di questi due paramentri ha prodotto delle inofrmazioni interessanti, riassunte mediante i due grafici. All'interno dell'analisi, per ogni nodo è stato calcolato l'indice di fiducia netto ($pos - neg$), permettendo dunque di individuare in nodi a cui è stata riservata più fiducia e dall'altra parte identificare i nodi "truffatori". Sono stati individuati anche i nodi definiti controversi, ossia dei nodi che hanno ricevuto sia valutazioni molto alte sia molto basse.
 
