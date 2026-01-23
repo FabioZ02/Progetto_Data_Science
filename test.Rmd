@@ -113,9 +113,6 @@ print(g)
 density_g <- edge_density(g)
 cat(paste("La densità del grafo è: ", density_g))
 
-# Converti il grafo igraph in un oggetto tidygraph (tbl_graph).
-tg <- as_tbl_graph(g)
-
 g_plot <- g 
 
 # Colore degli archi: gradiente per la forza del peso.
