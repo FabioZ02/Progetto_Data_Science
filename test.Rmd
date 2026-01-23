@@ -386,7 +386,7 @@ Terminato questo primo capitolo riguardante l'analisi locale della rete, nel suc
 
 # Analisi globale
 
-In questo ultimo capitolo verranno studiate le proprietà globali della rete Bitcoin OTC, in particolare analizzeremo se essa rispetta la topologia dei modelli teorici. Sfruttando la distribuzione del grado poi andremo a determinare se la rete è un piccolo mondo o no. Come ultima analisi andremo a testare la resilienza della rete.
+In questo ultimo capitolo verranno studiate le proprietà globali della rete Bitcoin OTC, in particolare analizzeremo se essa rispetta la topologia dei modelli teorici. Sfruttando la distribuzione del grado poi andremo a determinare se la rete è scale free. Come ultima analisi andremo a testare la resilienza della rete.
 
 ```{r, echo=TRUE,message=FALSE, warning=FALSE}
 
